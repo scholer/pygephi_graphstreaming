@@ -24,11 +24,12 @@ from __future__ import print_function, absolute_import
 __author__ = 'panisson@gmail.com'
 
 try:
-    import urllib2
+    from urllib2 import urlopen
 except ImportError:
-    from urllib import request as urllib2
+    from urllib.request import urlopen
 import json
 import time
+import sys
 
 class JSONClient(object):
 
@@ -54,7 +55,8 @@ class JSONClient(object):
             self.data = ""
 
     def _send(self, data):
-        print('passing')
+        """ Overwrite in subclass. """
+        pass
 
     def add_node(self, id, flush=True, **attributes):
         self.data += json.dumps(self.peh({"an":{id:attributes}})) + '\r\n'
@@ -87,7 +89,10 @@ class GephiClient(JSONClient):
         self.url = url
 
     def _send(self, data):
-        conn = urllib2.urlopen(self.url+ '?operation=updateGraph', data)
+        # For python3 we need to convert data string to bytes
+        if sys.version_info[0] > 2:
+            data = bytes(data, encoding='utf-8')
+        conn = urlopen(self.url+ '?operation=updateGraph', data)
         return conn.read()
 
 class GephiFileHandler(JSONClient):
